@@ -27,6 +27,16 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
+// Get all tickets for authenticated user (for /my-tickets endpoint)
+router.get('/my-tickets', authenticateToken, async (req, res) => {
+  try {
+    const tickets = await Ticket.find({ user: req.user.id }).populate('user', 'name email');
+    res.json(tickets);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Get a specific ticket
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
