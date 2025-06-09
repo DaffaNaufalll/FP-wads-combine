@@ -4,23 +4,30 @@ const router = express.Router();
 router.post('/ai-chat', async (req, res) => {
   const { message } = req.body;
   try {
-    // Dynamically import node-fetch for ESM compatibility
     const fetch = (await import('node-fetch')).default;
 
-    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    // Choose a Hugging Face model (you can change this to any supported chat model)
+    const HF_MODEL = "mistralai/Mixtral-8x7B-Instruct-v0.1";
+    const hfRes = await fetch(`https://api-inference.huggingface.co/models/${HF_MODEL}`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+        "Authorization": `Bearer ${process.env.HF_API_KEY}`,
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: message }]
+        inputs: message
       })
     });
-    const data = await openaiRes.json();
-    console.log("OpenAI API response:", data); // For debugging
-    const reply = data.choices?.[0]?.message?.content || "Sorry, I couldn't understand that.";
+    const data = await hfRes.json();
+    // The response format may vary by model. For most, it's an array with a 'generated_text' field.
+    let reply = "Sorry, I couldn't understand that.";
+    if (Array.isArray(data) && data[0]?.generated_text) {
+      reply = data[0].generated_text;
+    } else if (data.generated_text) {
+      reply = data.generated_text;
+    } else if (data.error) {
+      reply = "AI service error: " + data.error;
+    }
     res.json({ reply });
   } catch (err) {
     console.error("AI chat error:", err);
