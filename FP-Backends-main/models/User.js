@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
+  name: { // <-- Add this
+    type: String,
+    required: true,
+    trim: true
+  },
   email: {
     type: String,
     required: true,
@@ -12,7 +17,6 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true
   }
-  // Add other fields here if needed (e.g., name, role)
 }, {
   timestamps: true
 });
