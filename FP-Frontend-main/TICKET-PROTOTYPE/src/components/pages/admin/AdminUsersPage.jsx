@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Button } from "../../ui/button";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch all users on mount
   useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true);
@@ -27,7 +28,6 @@ export default function AdminUsersPage() {
     fetchUsers();
   }, []);
 
-  // Activate or deactivate user
   const handleToggleActive = async (userId, isActive) => {
     try {
       await fetch(
@@ -53,6 +53,9 @@ export default function AdminUsersPage() {
 
   return (
     <div className="p-8">
+      <Link to="/admin">
+        <Button className="mb-4">&larr; Back to Dashboard</Button>
+      </Link>
       <h1 className="text-2xl font-bold mb-6 text-green-700">All Users</h1>
       {loading ? (
         <div>Loading...</div>

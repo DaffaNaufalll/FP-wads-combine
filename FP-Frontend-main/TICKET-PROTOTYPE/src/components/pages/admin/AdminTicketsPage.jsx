@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Button } from "../../ui/button";
 
 export default function AdminTicketsPage() {
   const [tickets, setTickets] = useState([]);
@@ -29,6 +30,9 @@ export default function AdminTicketsPage() {
 
   return (
     <div className="p-8">
+      <Link to="/admin">
+        <Button className="mb-4">&larr; Back to Dashboard</Button>
+      </Link>
       <h1 className="text-2xl font-bold mb-6 text-green-700">All Tickets</h1>
       {loading ? (
         <div>Loading...</div>

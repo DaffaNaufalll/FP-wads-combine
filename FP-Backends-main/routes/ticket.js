@@ -27,7 +27,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Get all tickets for authenticated user
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/my-tickets', authenticateToken, async (req, res) => {
   try {
     const tickets = await Ticket.find({ user: req.user.id }).populate('user', 'name email');
     res.json(tickets);

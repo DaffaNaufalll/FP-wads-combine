@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { Button } from "../../ui/button";
 
 export default function AdminTicketDetailPage() {
   const { id } = useParams();
@@ -93,6 +94,9 @@ export default function AdminTicketDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center py-10">
       <div className="w-full max-w-2xl bg-white rounded-xl shadow-xl border p-8">
+        <Link to="/admin">
+          <Button className="mb-4">&larr; Back to Dashboard</Button>
+        </Link>
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-green-700">
             {ticket.subject || ticket.title}
