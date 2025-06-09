@@ -44,12 +44,12 @@ export default function ViewTicketsPage() {
   const [search, setSearch] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [tickets, setTickets] = useState([]); // <-- Use dynamic tickets!
+  const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Get logged-in user's email
-    const email = localStorage.getItem("email"); // Or however you store it
+    const email = localStorage.getItem("email");
     if (!email) {
       setLoading(false);
       return;
@@ -71,7 +71,7 @@ export default function ViewTicketsPage() {
     const matchesStatus =
       selectedFilter === "My tickets" ? true : t.status === selectedFilter;
     const matchesSearch =
-      t.subject.toLowerCase().includes(search.toLowerCase()) ||
+      (t.subject || "").toLowerCase().includes(search.toLowerCase()) ||
       (t.description && t.description.toLowerCase().includes(search.toLowerCase()));
     const ticketDate = t.createdAt?.slice(0, 10); // format: "YYYY-MM-DD"
     const afterFrom = !dateFrom || ticketDate >= dateFrom;

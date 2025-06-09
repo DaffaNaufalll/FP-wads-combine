@@ -43,7 +43,7 @@ export default function CreateTicketPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            title: subject,
+            subject, // <-- fixed: was title: subject
             description,
             priority,
             email: user.email,
