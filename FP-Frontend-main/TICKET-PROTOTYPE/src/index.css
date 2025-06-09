@@ -1,0 +1,85 @@
+/* src/index.css */
+
+/* Reset some basic elements */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f3f4f6; /* Tailwind's gray-100 */
+    color: #1f2937; /* Tailwind's gray-800 */
+    min-height: 100vh;
+  }
+  
+  /* Headings */
+  h1, h2, h3, h4, h5, h6 {
+    color: #065f46; /* Tailwind's green-700 */
+  }
+  
+  /* Buttons */
+  button {
+    cursor: pointer;
+    border: none;
+    outline: none;
+    font-weight: 600;
+  }
+  
+  /* Links */
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  /* Cards */
+  .card {
+    background-color: white;
+    border-radius: 1rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Form inputs */
+  input, textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db; /* Tailwind's gray-300 */
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    background-color: white;
+  }
+  
+  input:focus, textarea:focus {
+    border-color: #10b981; /* Tailwind's green-500 */
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+  }
+  
+  /* Utility classes (if Tailwind is not fully setup yet) */
+  .text-center {
+    text-align: center;
+  }
+  
+  .text-green {
+    color: #10b981;
+  }
+  
+  .bg-green {
+    background-color: #10b981;
+  }
+  
+  /* Smooth animation */
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
