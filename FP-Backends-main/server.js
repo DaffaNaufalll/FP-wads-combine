@@ -19,6 +19,9 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(() => console.log('MongoDB connected!'))
 .catch((err) => console.error('MongoDB connection error:', err));
 
+// Import models (so they're registered once)
+const User = require('./models/User');
+
 // Import routes
 const ticketRoutes = require('./routes/ticket');
 const aiRoutes = require('./routes/ai');
@@ -30,16 +33,6 @@ app.use('/api/tickets', ticketRoutes);
 app.use('/api', aiRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/reports', reportRoutes); // If you have a report.js
-
-// User Schema (for registration/login demo)
-const userSchema = new mongoose.Schema({
-  name: String,
-  email: String,
-  password: String, // NOTE: Hash in production!
-  role: String,
-  active: { type: Boolean, default: true }
-});
-const User = mongoose.model('User', userSchema);
 
 // User registration (for testing/demo)
 app.post('/api/register', async (req, res) => {

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
-  name: { // <-- Add this
+  name: {
     type: String,
     required: true,
     trim: true
@@ -16,9 +16,18 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true
+  },
+  role: {
+    type: String,
+    default: "user"
+  },
+  active: {
+    type: Boolean,
+    default: true
   }
 }, {
   timestamps: true
 });
 
-module.exports = mongoose.model('User', UserSchema);
+// Prevent OverwriteModelError in dev/hot-reload
+module.exports = mongoose.models.User || mongoose.model('User', UserSchema);
