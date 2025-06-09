@@ -20,7 +20,7 @@ router.post('/', authenticateToken, async (req, res) => {
 // Get all tickets for authenticated user
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    const tickets = await Ticket.find({ user: req.user.id });
+    const tickets = await Ticket.find({ user: req.user.id }).populate('user', 'name email');
     res.json(tickets);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -30,7 +30,7 @@ router.get('/', authenticateToken, async (req, res) => {
 // Get a specific ticket
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
-    const ticket = await Ticket.findOne({ _id: req.params.id, user: req.user.id });
+    const ticket = await Ticket.findOne({ _id: req.params.id, user: req.user.id }).populate('user', 'name email');
     if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
     res.json(ticket);
   } catch (err) {
@@ -45,7 +45,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
       { _id: req.params.id, user: req.user.id },
       req.body,
       { new: true }
-    );
+    ).populate('user', 'name email');
     if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
     res.json(ticket);
   } catch (err) {

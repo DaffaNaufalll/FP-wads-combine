@@ -168,6 +168,7 @@ export default function ViewTicketsPage() {
                   <th className="px-4 py-3 text-left">Status</th>
                   <th className="px-4 py-3 text-left">Priority</th>
                   <th className="px-4 py-3 text-left">Created At</th>
+                  <th className="px-4 py-3 text-left">Name</th>
                 </tr>
               </thead>
               <tbody>
@@ -196,6 +197,9 @@ export default function ViewTicketsPage() {
                     </td>
                     <td className="px-4 py-3">
                       {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString() : ""}
+                    </td>
+                    <td className="px-4 py-3">
+                      {ticket.user?.name || ticket.email || "N/A"}
                     </td>
                   </tr>
                 ))}
