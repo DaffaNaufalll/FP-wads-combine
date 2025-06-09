@@ -48,7 +48,6 @@ export default function ViewTicketsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get logged-in user's email
     const email = localStorage.getItem("email");
     if (!email) {
       setLoading(false);
@@ -60,7 +59,7 @@ export default function ViewTicketsPage() {
         setTickets(data);
         setLoading(false);
       })
-      .catch(err => {
+      .catch(() => {
         setLoading(false);
         alert("Failed to load tickets");
       });
@@ -68,14 +67,22 @@ export default function ViewTicketsPage() {
 
   // Filter tickets by status, search, and date range
   const filteredTickets = tickets.filter((t) => {
+    // Status filter (case-insensitive, handles missing status)
     const matchesStatus =
-      selectedFilter === "My tickets" ? true : t.status === selectedFilter;
+      selectedFilter === "My tickets"
+        ? true
+        : (t.status || "").toLowerCase() === selectedFilter.toLowerCase();
+
+    // Search filter (safe for missing subject/description)
     const matchesSearch =
       (t.subject || "").toLowerCase().includes(search.toLowerCase()) ||
       (t.description && t.description.toLowerCase().includes(search.toLowerCase()));
+
+    // Date filter
     const ticketDate = t.createdAt?.slice(0, 10); // format: "YYYY-MM-DD"
     const afterFrom = !dateFrom || ticketDate >= dateFrom;
     const beforeTo = !dateTo || ticketDate <= dateTo;
+
     return matchesStatus && matchesSearch && afterFrom && beforeTo;
   });
 
