@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const fetch = require('node-fetch'); // If using node-fetch, install it: npm install node-fetch
 
 router.post('/ai-chat', async (req, res) => {
   const { message } = req.body;
   try {
-    // Call OpenAI API (or similar)
+    // Dynamically import node-fetch
+    const fetch = (await import('node-fetch')).default;
+
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
