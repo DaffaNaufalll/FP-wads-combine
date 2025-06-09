@@ -45,8 +45,8 @@ export default function CreateTicketPage() {
           body: JSON.stringify({
             subject, // <-- fixed: was title: subject
             description,
-            priority,
-            email: user.email,
+            priority
+            
           }),
         }
       );
