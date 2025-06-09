@@ -42,13 +42,13 @@ const ticketSchema = new mongoose.Schema({
     ref: "User",
     required: true
   },
-  replies: [replySchema], // <-- Add replies array
+  replies: [replySchema], 
   createdAt: {
     type: Date,
     default: Date.now
   },
   updatedAt: Date
-  // Add more fields as needed...
+  
 });
 
 // Prevent OverwriteModelError:
