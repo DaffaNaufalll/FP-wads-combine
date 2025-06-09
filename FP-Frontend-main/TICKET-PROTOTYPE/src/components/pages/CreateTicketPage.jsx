@@ -30,23 +30,26 @@ export default function CreateTicketPage() {
     setError("");
     setLoading(true);
 
-    if (!user.email) {
-      setError("User email not found. Please log in again.");
-      setLoading(false);
-      return;
-    }
+    // Optionally, you can remove this check if your backend uses JWT for auth
+    // if (!user.email) {
+    //   setError("User email not found. Please log in again.");
+    //   setLoading(false);
+    //   return;
+    // }
 
     try {
       const res = await fetch(
         `${API_URL}/api/tickets`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("token")}`
+          },
           body: JSON.stringify({
-            subject, // <-- fixed: was title: subject
+            subject,
             description,
             priority
-            
           }),
         }
       );

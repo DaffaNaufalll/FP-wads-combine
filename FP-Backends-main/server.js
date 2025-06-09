@@ -18,24 +18,19 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(() => console.log('MongoDB connected!'))
 .catch((err) => console.error('MongoDB connection error:', err));
 
-// User Schema
+// Import routes
+const ticketRoutes = require('./routes/ticket');
+
+// Use ticket routes (all /api/tickets and related endpoints)
+app.use('/api/tickets', ticketRoutes);
+
+// User Schema (for registration/login demo)
 const userSchema = new mongoose.Schema({
   email: String,
   password: String, // NOTE: Hash in production!
   role: String
 });
 const User = mongoose.model('User', userSchema);
-
-// Ticket Schema (now includes priority)
-const ticketSchema = new mongoose.Schema({
-  title: String,
-  description: String,
-  priority: { type: String, default: "Low" }, // <-- added priority!
-  status: { type: String, default: "open" },
-  createdBy: String, // user's email or user id
-  createdAt: { type: Date, default: Date.now }
-});
-const Ticket = mongoose.model('Ticket', ticketSchema);
 
 // User registration (for testing/demo)
 app.post('/api/register', async (req, res) => {
@@ -60,30 +55,6 @@ app.post('/api/login', async (req, res) => {
     res.json({ token: 'mock-token', role: user.role, email: user.email });
   } catch (err) {
     res.status(500).json({ error: 'Login failed', details: err });
-  }
-});
-
-// Create Ticket (expects user email in body)
-app.post('/api/tickets', async (req, res) => {
-  const { title, description, priority, email } = req.body; // <-- now expects priority from frontend
-  if (!email) return res.status(400).json({ error: 'Missing user email' });
-  try {
-    const ticket = await Ticket.create({ title, description, priority, createdBy: email }); // <-- includes priority
-    res.json({ message: 'Ticket created', ticket });
-  } catch (err) {
-    res.status(500).json({ error: 'Ticket creation failed', details: err });
-  }
-});
-
-// Get "My Tickets" (by email, pass email as query or in token)
-app.get('/api/my-tickets', async (req, res) => {
-  const { email } = req.query; // or get email from token
-  if (!email) return res.status(400).json({ error: 'Missing user email' });
-  try {
-    const tickets = await Ticket.find({ createdBy: email }).sort({ createdAt: -1 });
-    res.json(tickets);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch tickets', details: err });
   }
 });
 
