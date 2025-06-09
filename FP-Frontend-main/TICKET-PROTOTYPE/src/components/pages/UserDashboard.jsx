@@ -50,6 +50,12 @@ export default function UserDashboard() {
     setLoading(false);
   };
 
+  // Logout handler
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    window.location.href = "/"; // or use navigate("/login") if using react-router
+  };
+
   return (
     <div className="flex min-h-screen bg-green-50">
       {/* Sidebar */}
@@ -71,6 +77,13 @@ export default function UserDashboard() {
                 <div className="text-xs text-gray-500">john.doe@email.com</div>
               </div>
             </div>
+            {/* Logout Button */}
+            <Button
+              className="mt-6 w-full bg-red-500 hover:bg-red-600 text-white"
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
           </div>
         </div>
       </aside>
