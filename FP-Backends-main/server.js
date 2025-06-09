@@ -21,18 +21,23 @@ mongoose.connect(process.env.MONGO_URI, {
 
 // Import routes
 const ticketRoutes = require('./routes/ticket');
-const aiRoutes = require('./routes/ai'); // <-- Add this line
+const aiRoutes = require('./routes/ai');
+const userRoutes = require('./routes/user');
+const reportRoutes = require('./routes/report'); // If you have a report.js
 
-// Use ticket routes (all /api/tickets and related endpoints)
+// Use routes
 app.use('/api/tickets', ticketRoutes);
-app.use('/api', aiRoutes); // <-- Add this line
+app.use('/api', aiRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/reports', reportRoutes); // If you have a report.js
 
 // User Schema (for registration/login demo)
 const userSchema = new mongoose.Schema({
   name: String,
   email: String,
   password: String, // NOTE: Hash in production!
-  role: String
+  role: String,
+  active: { type: Boolean, default: true }
 });
 const User = mongoose.model('User', userSchema);
 

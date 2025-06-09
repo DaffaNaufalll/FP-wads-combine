@@ -60,7 +60,12 @@ function App() {
             <AdminDashboard />
           </RequireAuth>
         } />
-        <Route path="/admin/ticket/:id" element={
+        <Route path="/admin/tickets" element={
+          <RequireAuth>
+            <AdminTicketsPage />
+          </RequireAuth>
+        } />
+        <Route path="/admin/tickets/:id" element={
           <RequireAuth>
             <AdminTicketDetailPage />
           </RequireAuth>
@@ -83,11 +88,6 @@ function App() {
         <Route path="/admin/settings" element={
           <RequireAuth>
             <AdminSettingsPage />
-          </RequireAuth>
-        } />
-        <Route path="/admin/tickets" element={
-          <RequireAuth>
-            <AdminTicketsPage />
           </RequireAuth>
         } />
       </Routes>
