@@ -21,13 +21,15 @@ mongoose.connect(process.env.MONGO_URI, {
 
 // Import routes
 const ticketRoutes = require('./routes/ticket');
+const aiRoutes = require('./routes/ai'); // <-- Add this line
 
 // Use ticket routes (all /api/tickets and related endpoints)
 app.use('/api/tickets', ticketRoutes);
+app.use('/api', aiRoutes); // <-- Add this line
 
 // User Schema (for registration/login demo)
 const userSchema = new mongoose.Schema({
-  name: String, // Add name field if not present
+  name: String,
   email: String,
   password: String, // NOTE: Hash in production!
   role: String
