@@ -9,30 +9,70 @@ export default function TicketDetailPage() {
   const [loading, setLoading] = useState(true);
   const [input, setInput] = useState("");
   const [file, setFile] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    fetch(`https://fp-backends-production.up.railway.app/api/tickets/${id}`, {
-      headers: {
-        "Authorization": `Bearer ${token}`
-      }
-    })
-      .then(res => res.json())
-      .then(data => {
-        setTicket(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
-        setTicket(null);
-      });
+    fetchTicket();
+    // eslint-disable-next-line
   }, [id]);
 
-  const handleReply = (e) => {
+  const fetchTicket = async () => {
+    setLoading(true);
+    const token = localStorage.getItem("token");
+    const res = await fetch(`https://fp-backends-production.up.railway.app/api/tickets/${id}`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const data = await res.json();
+    setTicket(data);
+    setLoading(false);
+  };
+
+  const handleReply = async (e) => {
     e.preventDefault();
-    // Implement reply logic here if needed
-    setInput("");
-    setFile(null);
+    setSubmitting(true);
+    const token = localStorage.getItem("token");
+    const formData = new FormData();
+    formData.append("message", input);
+    if (file) formData.append("file", file);
+
+    const res = await fetch(`https://fp-backends-production.up.railway.app/api/tickets/${id}/reply`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${token}` },
+      body: formData
+    });
+    if (res.ok) {
+      setInput("");
+      setFile(null);
+      fetchTicket();
+    }
+    setSubmitting(false);
+  };
+
+  const handlePriorityChange = async (e) => {
+    const newPriority = e.target.value;
+    const token = localStorage.getItem("token");
+    await fetch(`https://fp-backends-production.up.railway.app/api/tickets/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ priority: newPriority })
+    });
+    fetchTicket();
+  };
+
+  const handleClose = async () => {
+    const token = localStorage.getItem("token");
+    await fetch(`https://fp-backends-production.up.railway.app/api/tickets/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ status: "Closed" })
+    });
+    fetchTicket();
   };
 
   if (loading) return <div className="p-8 text-center">Loading...</div>;
@@ -59,8 +99,8 @@ export default function TicketDetailPage() {
           {ticket.status !== "Closed" && (
             <Button
               className="ml-4 bg-red-500 hover:bg-red-600 text-white text-xs px-4 py-1 rounded"
-              // Implement close ticket logic if needed
               type="button"
+              onClick={handleClose}
             >
               Close Ticket
             </Button>
@@ -71,10 +111,9 @@ export default function TicketDetailPage() {
           <label className="mr-2 text-sm font-semibold">Change Priority:</label>
           <select
             value={ticket.priority}
-            // Implement change priority logic if needed
+            onChange={handlePriorityChange}
             className="border rounded px-2 py-1 text-sm"
             disabled={ticket.status === "Closed"}
-            readOnly
           >
             <option>Low</option>
             <option>Medium</option>
@@ -86,7 +125,39 @@ export default function TicketDetailPage() {
             {ticket.description}
           </div>
         </div>
-        {/* Placeholder for messages/replies */}
+        {/* Replies Section */}
+        {ticket.replies && ticket.replies.length > 0 && (
+          <div className="mb-8">
+            <div className="font-semibold mb-2 text-gray-700">Conversation</div>
+            {ticket.replies.map((reply, idx) => (
+              <div key={reply._id || idx} className="mb-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-semibold text-green-700">
+                    {reply.user?.name || "User"}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    {new Date(reply.createdAt).toLocaleString()}
+                  </span>
+                </div>
+                <div className="bg-gray-100 rounded px-4 py-2">
+                  {reply.message}
+                  {reply.fileUrl && (
+                    <div className="mt-2">
+                      <a
+                        href={reply.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline text-xs"
+                      >
+                        View Attachment
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
         <form onSubmit={handleReply} className="flex flex-col gap-2">
           <textarea
             className="border rounded px-3 py-2"
@@ -95,14 +166,20 @@ export default function TicketDetailPage() {
             value={input}
             onChange={e => setInput(e.target.value)}
             required
+            disabled={ticket.status === "Closed" || submitting}
           />
           <input
             type="file"
             onChange={e => setFile(e.target.files[0])}
             className="mb-2"
+            disabled={ticket.status === "Closed" || submitting}
           />
-          <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white">
-            Send Reply
+          <Button
+            type="submit"
+            className="bg-green-600 hover:bg-green-700 text-white"
+            disabled={ticket.status === "Closed" || submitting}
+          >
+            {submitting ? "Sending..." : "Send Reply"}
           </Button>
         </form>
       </div>

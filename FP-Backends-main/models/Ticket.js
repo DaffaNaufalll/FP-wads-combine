@@ -1,5 +1,23 @@
 const mongoose = require('mongoose');
 
+// Reply subdocument schema
+const replySchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+  },
+  message: {
+    type: String,
+    required: true
+  },
+  fileUrl: String,
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
 const ticketSchema = new mongoose.Schema({
   subject: {
     type: String,
@@ -24,6 +42,7 @@ const ticketSchema = new mongoose.Schema({
     ref: "User",
     required: true
   },
+  replies: [replySchema], // <-- Add replies array
   createdAt: {
     type: Date,
     default: Date.now
