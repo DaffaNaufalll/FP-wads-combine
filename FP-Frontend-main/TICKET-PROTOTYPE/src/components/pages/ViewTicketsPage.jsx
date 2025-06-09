@@ -48,13 +48,21 @@ export default function ViewTicketsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const email = localStorage.getItem("email");
-    if (!email) {
+    const token = localStorage.getItem("token");
+    if (!token) {
       setLoading(false);
+      alert("You are not logged in.");
       return;
     }
-    fetch(`https://fp-backends-production.up.railway.app/api/my-tickets?email=${encodeURIComponent(email)}`)
-      .then(res => res.json())
+    fetch(`https://fp-backends-production.up.railway.app/api/tickets/my-tickets`, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    })
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to load tickets");
+        return res.json();
+      })
       .then(data => {
         setTickets(data);
         setLoading(false);
