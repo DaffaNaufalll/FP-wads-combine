@@ -1,177 +1,207 @@
-import React, { useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { Button } from "../../ui/button";
-
-const agentsList = [
-  { id: 1, name: "Agent Smith" },
-  { id: 2, name: "Agent Jane" },
-];
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 
 export default function AdminTicketDetailPage() {
   const { id } = useParams();
-
-  // All hooks at the top!
-  const [ticket, setTicket] = useState({
-    id,
-    subject: "Refund request",
-    user: "Lisa Goodman",
-    status: "Open",
-    priority: "High",
-    agent: "",
-    description: "Customer requests a refund for order #12345.",
-    createdAt: "2025-06-01",
-    messages: [
-      { from: "user", text: "I want a refund.", time: "2025-06-01 10:00" },
-      { from: "admin", text: "We are reviewing your request.", time: "2025-06-01 11:00" },
-    ],
-  });
-  const [showStatus, setShowStatus] = useState(false);
-  const [showPriority, setShowPriority] = useState(false);
-  const [showAgent, setShowAgent] = useState(false);
+  const navigate = useNavigate();
+  const [ticket, setTicket] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [reply, setReply] = useState("");
+  const [file, setFile] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  const isAdmin = localStorage.getItem("role") === "admin";
-  if (!isAdmin) {
-    window.location.href = "/login";
-    return null;
-  }
+  useEffect(() => {
+    fetchTicket();
+    // eslint-disable-next-line
+  }, [id]);
 
-  const handleStatusChange = (e) => {
-    setTicket({ ...ticket, status: e.target.value });
-    setShowStatus(false);
+  const fetchTicket = async () => {
+    setLoading(true);
+    const res = await fetch(
+      `https://fp-backends-production.up.railway.app/api/tickets/admin/${id}`,
+      {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      }
+    );
+    const data = await res.json();
+    setTicket(data);
+    setLoading(false);
   };
 
-  const handlePriorityChange = (e) => {
-    setTicket({ ...ticket, priority: e.target.value });
-    setShowPriority(false);
+  const handleStatusChange = async (e) => {
+    const newStatus = e.target.value;
+    await fetch(
+      `https://fp-backends-production.up.railway.app/api/tickets/admin/${id}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ status: newStatus }),
+      }
+    );
+    fetchTicket();
   };
 
-  const handleAgentChange = (e) => {
-    setTicket({ ...ticket, agent: e.target.value });
-    setShowAgent(false);
+  const handlePriorityChange = async (e) => {
+    const newPriority = e.target.value;
+    await fetch(
+      `https://fp-backends-production.up.railway.app/api/tickets/admin/${id}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ priority: newPriority }),
+      }
+    );
+    fetchTicket();
   };
 
-  const handleReply = (e) => {
+  const handleReply = async (e) => {
     e.preventDefault();
-    if (reply.trim()) {
-      setTicket({
-        ...ticket,
-        messages: [
-          ...ticket.messages,
-          { from: "admin", text: reply, time: new Date().toISOString().slice(0, 16).replace("T", " ") },
-        ],
-      });
-      setReply("");
-    }
+    setSubmitting(true);
+    const formData = new FormData();
+    formData.append("message", reply);
+    if (file) formData.append("file", file);
+
+    await fetch(
+      `https://fp-backends-production.up.railway.app/api/tickets/admin/${id}/reply`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: formData,
+      }
+    );
+    setReply("");
+    setFile(null);
+    setSubmitting(false);
+    fetchTicket();
   };
+
+  if (loading)
+    return <div className="p-8 text-center">Loading...</div>;
+  if (!ticket || ticket.message === "Ticket not found")
+    return (
+      <div className="p-8 text-center text-red-600">Ticket not found.</div>
+    );
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <span className="text-xl font-bold text-green-600">Tokopedia Helpdesk</span>
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center py-10">
+      <div className="w-full max-w-2xl bg-white rounded-xl shadow-xl border p-8">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-green-700">
+            {ticket.subject || ticket.title}
+          </h1>
+          <button
+            className="text-green-700 underline"
+            onClick={() => navigate("/admin/tickets")}
+          >
+            &larr; Back to Tickets
+          </button>
         </div>
-        <nav className="flex flex-col gap-2 p-6">
-          <Link to="/admin" className="hover:text-green-700">Dashboard</Link>
-          <Link to="/admin/tickets" className="hover:text-green-700">All Tickets</Link>
-          <Link to="/admin/users" className="hover:text-green-700">Users</Link>
-          <Link to="/admin/agents" className="hover:text-green-700">Agents</Link>
-          <Link to="/admin/reports" className="hover:text-green-700">Reports</Link>
-          <Link to="/admin/settings" className="hover:text-green-700">Settings</Link>
-        </nav>
-      </aside>
-      {/* Main Content */}
-      <main className="flex-1 p-8">
-        <Link to="/admin">
-          <Button className="mb-4">&larr; Back to Dashboard</Button>
-        </Link>
-        <Link to="/admin/tickets">
-          <Button className="mb-4 ml-2">&larr; Back to Tickets</Button>
-        </Link>
-        <div className="bg-white rounded-xl shadow p-6 max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold mb-2">{ticket.subject}</h1>
-          <div className="mb-2 text-gray-600">From: {ticket.user}</div>
-          <div className="mb-2 flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">{ticket.status}</span>
-            <Button className="bg-blue-600 text-white px-2 py-1 text-xs" onClick={() => setShowStatus(!showStatus)}>
-              Change Status
-            </Button>
-            {showStatus && (
-              <select
-                className="ml-2 border rounded px-2 py-1 text-xs"
-                value={ticket.status}
-                onChange={handleStatusChange}
-                onBlur={() => setShowStatus(false)}
-                autoFocus
-              >
-                <option value="Open">Open</option>
-                <option value="Pending">Pending</option>
-                <option value="Closed">Closed</option>
-              </select>
-            )}
-            <span className="ml-2 px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">{ticket.priority}</span>
-            <Button className="bg-yellow-500 text-white px-2 py-1 text-xs" onClick={() => setShowPriority(!showPriority)}>
-              Change Priority
-            </Button>
-            {showPriority && (
-              <select
-                className="ml-2 border rounded px-2 py-1 text-xs"
-                value={ticket.priority}
-                onChange={handlePriorityChange}
-                onBlur={() => setShowPriority(false)}
-                autoFocus
-              >
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
-              </select>
-            )}
-            <span className="ml-2 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-              {ticket.agent ? `Agent: ${ticket.agent}` : "No Agent"}
-            </span>
-            <Button className="bg-green-600 text-white px-2 py-1 text-xs" onClick={() => setShowAgent(!showAgent)}>
-              Assign Agent
-            </Button>
-            {showAgent && (
-              <select
-                className="ml-2 border rounded px-2 py-1 text-xs"
-                value={ticket.agent}
-                onChange={handleAgentChange}
-                onBlur={() => setShowAgent(false)}
-                autoFocus
-              >
-                <option value="">-- Select Agent --</option>
-                {agentsList.map(agent => (
-                  <option key={agent.id} value={agent.name}>{agent.name}</option>
-                ))}
-              </select>
-            )}
+        <div className="mb-4 flex items-center gap-2">
+          <span className="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
+            {ticket.status}
+          </span>
+          <span className="inline-block px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-semibold">
+            Priority: {ticket.priority}
+          </span>
+        </div>
+        <div className="mb-4 flex items-center gap-2">
+          <label className="mr-2 text-sm font-semibold">Change Status:</label>
+          <select
+            value={ticket.status}
+            onChange={handleStatusChange}
+            className="border rounded px-2 py-1 text-sm"
+          >
+            <option>Open</option>
+            <option>Pending</option>
+            <option>Closed</option>
+          </select>
+          <label className="ml-4 mr-2 text-sm font-semibold">
+            Change Priority:
+          </label>
+          <select
+            value={ticket.priority}
+            onChange={handlePriorityChange}
+            className="border rounded px-2 py-1 text-sm"
+          >
+            <option>Low</option>
+            <option>Medium</option>
+            <option>High</option>
+          </select>
+        </div>
+        <div className="mb-8">
+          <div className="bg-green-50 p-4 rounded mb-2">
+            {ticket.description}
           </div>
-          <div className="mb-4 text-gray-700">{ticket.description}</div>
-          <div className="mb-4 text-xs text-gray-400">Created: {ticket.createdAt}</div>
-          <h2 className="font-semibold mb-2">Conversation</h2>
-          <div className="bg-gray-50 rounded p-3 mb-4">
-            {ticket.messages.map((msg, idx) => (
-              <div key={idx} className="mb-2">
-                <span className="font-bold">{msg.from === "admin" ? "Admin" : ticket.user}:</span>
-                <span className="ml-2">{msg.text}</span>
-                <span className="ml-2 text-xs text-gray-400">{msg.time}</span>
+          <div className="text-xs text-gray-500">
+            Submitted by: {ticket.user?.name} ({ticket.user?.email})
+          </div>
+        </div>
+        {/* Replies Section */}
+        {ticket.replies && ticket.replies.length > 0 && (
+          <div className="mb-8">
+            <div className="font-semibold mb-2 text-gray-700">Conversation</div>
+            {ticket.replies.map((reply, idx) => (
+              <div key={reply._id || idx} className="mb-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-semibold text-green-700">
+                    {reply.user?.name || "User"}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    {new Date(reply.createdAt).toLocaleString()}
+                  </span>
+                </div>
+                <div className="bg-gray-100 rounded px-4 py-2">
+                  {reply.message}
+                  {reply.fileUrl && (
+                    <div className="mt-2">
+                      <a
+                        href={reply.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline text-xs"
+                      >
+                        View Attachment
+                      </a>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
-          {/* Reply box */}
-          <form className="mt-6 flex gap-2" onSubmit={handleReply}>
-            <input
-              className="flex-1 border rounded px-2 py-1"
-              placeholder="Reply as admin..."
-              value={reply}
-              onChange={e => setReply(e.target.value)}
-            />
-            <Button className="bg-green-600 text-white" type="submit">Send</Button>
-          </form>
-        </div>
-      </main>
+        )}
+        <form onSubmit={handleReply} className="flex flex-col gap-2">
+          <textarea
+            className="border rounded px-3 py-2"
+            rows={3}
+            placeholder="Type your reply..."
+            value={reply}
+            onChange={e => setReply(e.target.value)}
+            required
+            disabled={submitting}
+          />
+          <input
+            type="file"
+            onChange={e => setFile(e.target.files[0])}
+            className="mb-2"
+            disabled={submitting}
+          />
+          <button
+            type="submit"
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+            disabled={submitting}
+          >
+            {submitting ? "Sending..." : "Send Reply"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
