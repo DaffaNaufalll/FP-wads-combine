@@ -1,58 +1,65 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { useNavigate, useParams } from "react-router-dom";
-
-const mockTicket = {
-  id: 1,
-  subject: "Shoe size question",
-  status: "Open",
-  priority: "High",
-  messages: [
-    { from: "user", text: "What size should I get for wide feet?", time: "2 hours ago" },
-    { from: "agent", text: "We recommend one size up.", time: "1 hour ago" },
-  ],
-};
 
 export default function TicketDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [messages, setMessages] = useState(mockTicket.messages);
+  const [ticket, setTicket] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [input, setInput] = useState("");
   const [file, setFile] = useState(null);
-  const [status, setStatus] = useState(mockTicket.status);
-  const [priority, setPriority] = useState(mockTicket.priority);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    fetch(`https://fp-backends-production.up.railway.app/api/tickets/${id}`, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        setTicket(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+        setTicket(null);
+      });
+  }, [id]);
 
   const handleReply = (e) => {
     e.preventDefault();
-    if (!input.trim()) return;
-    setMessages([
-      ...messages,
-      { from: "user", text: input, time: "just now", file },
-    ]);
+    // Implement reply logic here if needed
     setInput("");
     setFile(null);
   };
+
+  if (loading) return <div className="p-8 text-center">Loading...</div>;
+  if (!ticket || ticket.message === "Ticket not found") return (
+    <div className="p-8 text-center text-red-600">Ticket not found.</div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center py-10">
       <div className="w-full max-w-2xl bg-white rounded-xl shadow-xl border p-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-green-700">{mockTicket.subject}</h1>
+          <h1 className="text-2xl font-bold text-green-700">{ticket.subject || ticket.title}</h1>
           <Button variant="ghost" onClick={() => navigate("/view-tickets")}>
             &larr; Back to Tickets
           </Button>
         </div>
         <div className="mb-4 flex items-center gap-2">
           <span className="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
-            {status}
+            {ticket.status}
           </span>
           <span className="inline-block px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-semibold">
-            Priority: {priority}
+            Priority: {ticket.priority}
           </span>
-          {status !== "Closed" && (
+          {ticket.status !== "Closed" && (
             <Button
               className="ml-4 bg-red-500 hover:bg-red-600 text-white text-xs px-4 py-1 rounded"
-              onClick={() => setStatus("Closed")}
+              // Implement close ticket logic if needed
               type="button"
             >
               Close Ticket
@@ -63,33 +70,23 @@ export default function TicketDetailPage() {
         <div className="mb-4 flex items-center gap-2">
           <label className="mr-2 text-sm font-semibold">Change Priority:</label>
           <select
-            value={priority}
-            onChange={e => setPriority(e.target.value)}
+            value={ticket.priority}
+            // Implement change priority logic if needed
             className="border rounded px-2 py-1 text-sm"
-            disabled={status === "Closed"}
+            disabled={ticket.status === "Closed"}
+            readOnly
           >
             <option>Low</option>
             <option>Medium</option>
             <option>High</option>
           </select>
         </div>
-        <div className="space-y-4 mb-8">
-          {messages.map((msg, idx) => (
-            <div key={idx} className={`flex ${msg.from === "user" ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-xs px-4 py-2 rounded-lg ${msg.from === "user" ? "bg-green-100 text-right" : "bg-gray-100 text-left"}`}>
-                <div>{msg.text}</div>
-                {msg.file && (
-                  <div className="mt-2">
-                    <a href={URL.createObjectURL(msg.file)} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-xs">
-                      Attachment
-                    </a>
-                  </div>
-                )}
-                <div className="text-xs text-gray-400 mt-1">{msg.time}</div>
-              </div>
-            </div>
-          ))}
+        <div className="mb-8">
+          <div className="bg-green-50 p-4 rounded mb-2">
+            {ticket.description}
+          </div>
         </div>
+        {/* Placeholder for messages/replies */}
         <form onSubmit={handleReply} className="flex flex-col gap-2">
           <textarea
             className="border rounded px-3 py-2"
