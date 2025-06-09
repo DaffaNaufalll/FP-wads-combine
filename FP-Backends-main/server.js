@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -26,6 +27,7 @@ app.use('/api/tickets', ticketRoutes);
 
 // User Schema (for registration/login demo)
 const userSchema = new mongoose.Schema({
+  name: String, // Add name field if not present
   email: String,
   password: String, // NOTE: Hash in production!
   role: String
@@ -34,11 +36,11 @@ const User = mongoose.model('User', userSchema);
 
 // User registration (for testing/demo)
 app.post('/api/register', async (req, res) => {
-  const { email, password, role } = req.body;
+  const { name, email, password, role } = req.body;
   try {
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ error: 'User already exists' });
-    const user = await User.create({ email, password, role });
+    const user = await User.create({ name, email, password, role });
     res.json({ message: 'User registered!', user });
   } catch (err) {
     res.status(500).json({ error: 'Registration failed', details: err });
@@ -51,8 +53,15 @@ app.post('/api/login', async (req, res) => {
   try {
     const user = await User.findOne({ email, password });
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
-    // In production, generate JWT
-    res.json({ token: 'mock-token', role: user.role, email: user.email });
+
+    // Generate a real JWT token
+    const token = jwt.sign(
+      { id: user._id, email: user.email, name: user.name, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    res.json({ token, role: user.role, email: user.email, name: user.name });
   } catch (err) {
     res.status(500).json({ error: 'Login failed', details: err });
   }
